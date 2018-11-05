@@ -1,0 +1,251 @@
+C51 COMPILER V9.00   LCD_FUN                                                               06/25/2018 08:37:27 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE LCD_FUN
+OBJECT MODULE PLACED IN Lcd_Fun.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE Lcd_Fun.c LARGE BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /**************************************
+   2          12c5a60s2       11.0592MHZ
+   3          **************************************/
+   4          #include "Lcd_Fun.h"
+   5          #include "Delay_Fun.h"
+   6                                                                     
+   7          /**************************************
+   8          检测1602忙闲
+   9          **************************************/
+  10          bit LcdBusy()
+  11          {
+  12   1      bit result;
+  13   1      P0 = 0x80;
+  14   1      lcdrs = 0;
+  15   1      lcdrw = 1;
+  16   1      lcden = 1;
+  17   1      _nop_();
+  18   1      _nop_();
+  19   1      _nop_();
+  20   1      _nop_();
+  21   1      result = (bit)(P0 & 0x80);
+  22   1      lcden = 0;
+  23   1      return result;
+  24   1      }
+  25          
+  26          void RDBF(void)
+  27          {
+  28   1              unsigned char temp;
+  29   1              P0=0xFF; //数据线为输入
+  30   1              lcdrs=0; // RS=0
+  31   1              lcdrw=1; // RW=1
+  32   1              //DelayXus(2);
+  33   1              while(1)
+  34   1              {       
+  35   2              lcden=1;
+  36   2              //DelayXus(3);
+  37   2              temp=P0;
+  38   2              lcden=0; // E=0
+  39   2              if ((temp&0x01)==0) break;
+  40   2              //DelayXus(3);
+  41   2              }
+  42   1      }
+  43          
+  44          /**************************************
+  45          写1602命令
+  46          **************************************/
+  47          void LcdWriteCmd(unsigned char CMD)
+  48          {
+  49   1      /** /
+  50   1              //while(LcdBusy());
+  51   1              RDBF();
+  52   1              test_led = 0;
+  53   1              _nop_();
+  54   1              lcdrs = 0;
+  55   1              lcdrw = 0;
+C51 COMPILER V9.00   LCD_FUN                                                               06/25/2018 08:37:27 PAGE 2   
+
+  56   1              lcden = 0;
+  57   1      //      _nop_();
+  58   1      //      _nop_();
+  59   1              P0 = CMD;
+  60   1      //      _nop_();
+  61   1      //      _nop_();
+  62   1      //      _nop_();
+  63   1      //      _nop_();
+  64   1      //      _nop_();
+  65   1      //      _nop_();
+  66   1              lcden = 1;
+  67   1      //      DelayXus(370);
+  68   1              lcden = 0;
+  69   1              DelayXus(370);
+  70   1      /**/
+  71   1              RDBF();
+  72   1              
+  73   1              lcdrs=0;
+  74   1              lcdrw=0;
+  75   1              P0=reverse8(CMD);
+  76   1              lcden=1;
+  77   1              lcden=0;
+  78   1      //      DelayXus(370);
+  79   1              /**/
+  80   1      }
+  81          
+  82          /**************************************
+  83          写1602数据
+  84          **************************************/
+  85          void LcdWriteDat(unsigned char Dat)
+  86          {
+  87   1      /**/
+  88   1              //while(LcdBusy());
+  89   1              RDBF();
+  90   1              lcdrs = 1;
+  91   1              lcdrw = 0;
+  92   1              lcden = 0;
+  93   1              //_nop_();
+  94   1              //_nop_();
+  95   1              P0 = reverse8(Dat);
+  96   1              //_nop_();
+  97   1              //_nop_();
+  98   1              //_nop_();
+  99   1      //      _nop_();
+ 100   1      //      _nop_();
+ 101   1      //      _nop_();
+ 102   1              lcden = 1;
+ 103   1      //      DelayXus(370);
+ 104   1              lcden = 0;
+ 105   1              //DelayXus(370);
+ 106   1              /** /
+ 107   1              RDBF();
+ 108   1              lcdrs=1;
+ 109   1              lcdrw=0;
+ 110   1              lcden = 0;
+ 111   1              P0=Dat;
+ 112   1              lcden=1;
+ 113   1              lcden=0;
+ 114   1              //DelayXus(370);
+ 115   1              /**/
+ 116   1      }                                                                                                               
+ 117          
+C51 COMPILER V9.00   LCD_FUN                                                               06/25/2018 08:37:27 PAGE 3   
+
+ 118          /**************************************
+ 119          1602初始化
+ 120          **************************************/
+ 121          void LcdInit()
+ 122          {
+ 123   1          DelayXus(1500);
+ 124   1              LcdWriteCmd(0x38);
+ 125   1              DelayXus(5000);
+ 126   1              LcdWriteCmd(0x38);
+ 127   1              DelayXus(5000);
+ 128   1              LcdWriteCmd(0x38);
+ 129   1              //LcdWriteCmd(0x08);
+ 130   1          //LcdWriteCmd(0x01);
+ 131   1              LcdWriteCmd(0x0c); 
+ 132   1              LcdWriteCmd(0x06);
+ 133   1              //DelayXus(1000);
+ 134   1              //LcdWriteCmd(0x38);
+ 135   1              //LcdWriteCmd(0x06);
+ 136   1                      //DelayXus(1000);
+ 137   1      
+ 138   1              //LcdWriteCmd(0x0c);    
+ 139   1      
+ 140   1                      //DelayXus(1000);
+ 141   1      }
+ 142          
+ 143          void LcdInit1()
+ 144          {
+ 145   1              //test_led = 1;
+ 146   1              //test_led = 0;
+ 147   1              //test_led = 1;         
+ 148   1      //      Delayms(1000);
+ 149   1              DelayXus(1500);
+ 150   1              LcdWriteCmd(0x30);
+ 151   1      
+ 152   1              DelayXus(500);
+ 153   1              LcdWriteCmd(0x30);
+ 154   1              DelayXus(500);
+ 155   1              LcdWriteCmd(0x0C);
+ 156   1              //LcdWriteCmd(0x08);
+ 157   1              DelayXus(500);
+ 158   1          LcdWriteCmd(0x01);
+ 159   1                      Delayms(12);
+ 160   1              //DelayXus(5000);
+ 161   1              //LcdWriteCmd(0x0c); 
+ 162   1              //DelayXus(5000);
+ 163   1              LcdWriteCmd(0x06);
+ 164   1                      
+ 165   1      
+ 166   1      }
+ 167          
+ 168          //字节（8位）翻转
+ 169          unsigned char reverse8( unsigned char c )
+ 170          {
+ 171   1           c = ( c & 0x55 ) << 1 | ( c & 0xAA ) >> 1;
+ 172   1           c = ( c & 0x33 ) << 2 | ( c & 0xCC ) >> 2;
+ 173   1           c = ( c & 0x0F ) << 4 | ( c & 0xF0 ) >> 4;
+ 174   1           return c;
+ 175   1      }
+ 176          
+ 177          /*
+ 178          void LcdReInit()
+ 179          {
+C51 COMPILER V9.00   LCD_FUN                                                               06/25/2018 08:37:27 PAGE 4   
+
+ 180                  LcdWriteCmd(0x38);
+ 181                  LcdWriteCmd(0x0c); 
+ 182                  LcdWriteCmd(0x06);      
+ 183          }
+ 184          
+ 185          void lcdClean()
+ 186          {
+ 187                  LcdWriteCmd(0x01);
+ 188          }
+ 189          */
+ 190          /**************************************
+ 191          显示字符数组
+ 192          *************************************
+ 193          void LcdShowArray(unsigned char* ArrayPtr,unsigned char Num,unsigned char Line,unsigned char Location)
+ 194          {
+ 195                  unsigned char i,Addr;
+ 196                  if(Location + Num >= 17)
+ 197                  {
+ 198                          return;
+ 199                  }
+ 200                  if(Line == 1)
+ 201                  {
+ 202                           Addr = Location + 0x80;
+ 203                  }
+ 204                  if(Line == 2)
+ 205                  {
+ 206                           Addr = Location + 0xC0;
+ 207                  }
+ 208                  LcdWriteCmd(Addr);
+ 209                  for(i=0;i<Num;i++)
+ 210                  {
+ 211                          if(ArrayPtr[i] != 0x00)
+ 212                          {
+ 213                                  LcdWriteDat(ArrayPtr[i]);
+ 214                                  Location++;
+ 215                          }
+ 216                  }
+ 217                  for(i=0;i<(16-Location);i++)
+ 218                  {
+ 219                          LcdWriteDat(' ');
+ 220                  }
+ 221          }
+ 222          */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    221    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

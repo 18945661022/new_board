@@ -1,0 +1,133 @@
+C51 COMPILER V9.00   EEPROM_FUN                                                            06/25/2018 08:37:27 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE EEPROM_FUN
+OBJECT MODULE PLACED IN EEPROM_Fun.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE EEPROM_Fun.c LARGE BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include "EEPROM_Fun.h"
+   2          
+   3          /*----------------------------
+   4          Disable ISP/IAP/EEPROM function
+   5          Make MCU in a safe state
+   6          ----------------------------*/
+   7          void IapIdle()
+   8          {
+   9   1          IAP_CONTR = 0;                  //Close IAP function
+  10   1          IAP_CMD = 0;                    //Clear command to standby
+  11   1          IAP_TRIG = 0;                   //Clear trigger register
+  12   1          IAP_ADDRH = 0x80;               //Data ptr point to non-EEPROM area
+  13   1          IAP_ADDRL = 0;                  //Clear IAP address to prevent misuse
+  14   1      }
+  15          
+  16          /*----------------------------
+  17          Read one byte from ISP/IAP/EEPROM area
+  18          Input: addr (ISP/IAP/EEPROM address)
+  19          Output:Flash data
+  20          ----------------------------*/
+  21          unsigned char IapReadByte(unsigned int addr)
+  22          {
+  23   1          unsigned char dat;                       //Data buffer
+  24   1      
+  25   1          IAP_CONTR = ENABLE_IAP;         //Open IAP function, and set wait time
+  26   1          IAP_CMD = CMD_READ;             //Set ISP/IAP/EEPROM READ command
+  27   1          IAP_ADDRL = addr;               //Set ISP/IAP/EEPROM address low
+  28   1          IAP_ADDRH = addr >> 8;          //Set ISP/IAP/EEPROM address high
+  29   1          IAP_TRIG = 0x5a;                //Send trigger command1 (0x5a)
+  30   1          IAP_TRIG = 0xa5;                //Send trigger command2 (0xa5)
+  31   1          _nop_();                        //MCU will hold here until ISP/IAP/EEPROM operation complete
+  32   1          dat = IAP_DATA;                 //Read ISP/IAP/EEPROM data
+  33   1          IapIdle();                      //Close ISP/IAP/EEPROM function
+  34   1      
+  35   1          return dat;                     //Return Flash data
+  36   1      }
+  37          
+  38          /*----------------------------
+  39          Program one byte to ISP/IAP/EEPROM area
+  40          Input: addr (ISP/IAP/EEPROM address)
+  41                 dat (ISP/IAP/EEPROM data)
+  42          Output:-
+  43          ----------------------------*/
+  44          void IapProgramByte(unsigned int addr, unsigned char dat)
+  45          {
+  46   1          IAP_CONTR = ENABLE_IAP;         //Open IAP function, and set wait time
+  47   1          IAP_CMD = CMD_PROGRAM;          //Set ISP/IAP/EEPROM PROGRAM command
+  48   1          IAP_ADDRL = addr;               //Set ISP/IAP/EEPROM address low
+  49   1          IAP_ADDRH = addr >> 8;          //Set ISP/IAP/EEPROM address high
+  50   1          IAP_DATA = dat;                 //Write ISP/IAP/EEPROM data
+  51   1          IAP_TRIG = 0x5a;                //Send trigger command1 (0x5a)
+  52   1          IAP_TRIG = 0xa5;                //Send trigger command2 (0xa5)
+  53   1          _nop_();                        //MCU will hold here until ISP/IAP/EEPROM operation complete
+  54   1          IapIdle();
+  55   1      }
+C51 COMPILER V9.00   EEPROM_FUN                                                            06/25/2018 08:37:27 PAGE 2   
+
+  56          
+  57          /*----------------------------
+  58          Erase one sector area
+  59          Input: addr (ISP/IAP/EEPROM address)
+  60          Output:-
+  61          ----------------------------*/
+  62          void IapEraseSector(unsigned int addr)
+  63          {
+  64   1              EA =0;
+  65   1          IAP_CONTR = ENABLE_IAP;         //Open IAP function, and set wait time
+  66   1          IAP_CMD = CMD_ERASE;            //Set ISP/IAP/EEPROM ERASE command
+  67   1          IAP_ADDRL = addr;               //Set ISP/IAP/EEPROM address low
+  68   1          IAP_ADDRH = addr >> 8;          //Set ISP/IAP/EEPROM address high
+  69   1          IAP_TRIG = 0x5a;                //Send trigger command1 (0x5a)
+  70   1          IAP_TRIG = 0xa5;                //Send trigger command2 (0xa5)
+  71   1          _nop_();                        //MCU will hold here until ISP/IAP/EEPROM operation complete
+  72   1          IapIdle();
+  73   1              EA = 1;
+  74   1      }
+  75          
+  76          /*-----------------------------
+  77          获取某扇区数据写入缓冲区
+  78          -----------------------------*/
+  79          void GetSector(unsigned char iap_num,unsigned char* EEPROM_Buffer)
+  80          {
+  81   1              unsigned int i,Addr;
+  82   1              Addr = (unsigned int)iap_num*512;
+  83   1              EA = 0;
+  84   1              for(i=0;i<512;i++)
+  85   1              {
+  86   2                      EEPROM_Buffer[i] = IapReadByte(Addr+i);
+  87   2              }
+  88   1              EA = 1;
+  89   1      }
+  90          
+  91          /*-----------------------------
+  92          缓冲区数据写入某扇区
+  93          -----------------------------*/
+  94          void WriteSector(unsigned char iap_num,unsigned char* EEPROM_Buffer)
+  95          {
+  96   1              unsigned int i,Addr;
+  97   1              Addr = (unsigned int)iap_num*512;
+  98   1              EA = 0;
+  99   1              for(i=0;i<512;i++)
+ 100   1              {
+ 101   2                      IapProgramByte(Addr+i,EEPROM_Buffer[i]);
+ 102   2              }
+ 103   1              EA =1 ;
+ 104   1      }
+ 105          
+ 106          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    290    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----      14
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+C51 COMPILER V9.00   EEPROM_FUN                                                            06/25/2018 08:37:27 PAGE 3   
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

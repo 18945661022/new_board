@@ -1,0 +1,9 @@
+"Delay_Fun.obj",
+"EEPROM_Fun.obj",
+"Lcd_Fun.obj",
+"Stc_Math.obj",
+"main.obj",
+"ADC_Fun.obj",
+"AM2305.obj" 
+TO "new_board" 
+RAMSIZE(256) 

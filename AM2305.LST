@@ -1,0 +1,108 @@
+C51 COMPILER V9.00   AM2305                                                                06/27/2018 14:40:51 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE AM2305
+OBJECT MODULE PLACED IN AM2305.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE AM2305.c LARGE BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include "AM2305.h"
+   2          #include "Delay_Fun.h"
+   3          
+   4          /**************************************
+   5          AM2305一次采集最开始操作及结果返回
+   6          **************************************/
+   7          unsigned char AM2305_Start(unsigned char delay)
+   8          {
+   9   1              unsigned int i;
+  10   1              //先给出低电平
+  11   1              Sensor_SDA = 0;
+  12   1              Delayms(delay);
+  13   1              //释放总线 (Min=30us Max=50us)
+  14   1              Sensor_SDA = 1;         
+  15   1              DelayXus(22);//延时34us
+  16   1              //判断传感器响应信号
+  17   1              if(Sensor_SDA ==0)
+  18   1              {
+  19   2                      i = 300;
+  20   2                      while(!Sensor_SDA)
+  21   2                      {
+  22   3                              if(i--==0)
+  23   3                              {
+  24   4                                      return 2;      //80us低电平没出来
+  25   4                              }
+  26   3                      }
+  27   2                      i = 300;
+  28   2                      while(Sensor_SDA)
+  29   2                      {
+  30   3                              if(i--==0)
+  31   3                              {
+  32   4                                      EA = 1;
+  33   4                                      return 3;      //80us高电平没出来
+  34   4                              }
+  35   3                      }
+  36   2                      return 0;        //成功，准备接受数据
+  37   2              }
+  38   1              else
+  39   1              {
+  40   2                      return 1;         //断路错误（很有可能）
+  41   2              }
+  42   1      }
+  43          
+  44          /**************************************
+  45          AM2305字节获取，失败的话返回0值
+  46          **************************************/
+  47          unsigned char AM2305_ReadByte()
+  48          {
+  49   1              unsigned char i,cnt;
+  50   1              unsigned char buffer,tmp;
+  51   1              buffer = 0;
+  52   1              //循环读取
+  53   1              for(i=0;i<8;i++)
+  54   1              {
+  55   2                      cnt = 400;
+C51 COMPILER V9.00   AM2305                                                                06/27/2018 14:40:51 PAGE 2   
+
+  56   2                      while(!Sensor_SDA)
+  57   2                      {
+  58   3                              if(cnt--==0)
+  59   3                              {
+  60   4                                      return 0;      //50us低电平没出来
+  61   4                              }
+  62   3                      }
+  63   2                      //延时Min=26us Max50us 跳过数据"0" 的高电平
+  64   2                      DelayXus(22); //延时34us 
+  65   2                      //判断传感器发送数据位
+  66   2                      tmp =0;
+  67   2                      if(Sensor_SDA)   
+  68   2                      {
+  69   3                        tmp = 1;
+  70   3                      }
+  71   2                      cnt = 400;
+  72   2                      while(Sensor_SDA)
+  73   2                      {
+  74   3                              if(cnt--==0)
+  75   3                              {
+  76   4                                      return 0;      //（不超过80us）高电平没出来
+  77   4                              }
+  78   3                      }
+  79   2                      buffer <<=1;
+  80   2                      buffer |= tmp;   
+  81   2              }
+  82   1              return buffer;
+  83   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    164    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----       4
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,71 @@
+C51 COMPILER V9.00   DELAY_FUN                                                             06/25/2018 08:37:26 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE DELAY_FUN
+OBJECT MODULE PLACED IN Delay_Fun.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE Delay_Fun.c LARGE BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include "INTRINS.H"
+   2          #include "Delay_Fun.h"
+   3          
+   4          /**************************************
+   5          stc12c5as60延时X微秒
+   6          标称值：
+   7                  n       us
+   8                  2               6
+   9                  3               8
+  10                  40              60
+  11                  45              70
+  12                  69      100
+  13              165         240
+  14          **************************************/
+  15          void DelayXus(unsigned char n)
+  16          {
+  17   1          while (n--)
+  18   1          {
+  19   2              _nop_();
+  20   2              _nop_();
+  21   2          }
+  22   1      }
+  23          
+  24          /**************************************
+  25          stc12c5as60延时1ms
+  26          **************************************/
+  27          void Delay1ms()
+  28          {
+  29   1              unsigned char i;
+  30   1              for(i=0;i<=9;i++)
+  31   1              {
+  32   2                      DelayXus(69);   
+  33   2              }               
+  34   1      }
+  35          
+  36          /*************************************
+  37          stc12c5as60延时约N ms
+  38          *************************************/
+  39          void Delayms(unsigned int Num)
+  40          {
+  41   1              unsigned int i;
+  42   1              for(i=0;i<Num;i++)
+  43   1              {
+  44   2                      Delay1ms();
+  45   2              }       
+  46   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     47    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+C51 COMPILER V9.00   DELAY_FUN                                                             06/25/2018 08:37:26 PAGE 2   
+
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
